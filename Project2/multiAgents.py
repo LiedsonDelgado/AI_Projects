@@ -136,7 +136,85 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        #função que calcula o valor minimax de um estado
+        #state - estado atual do jogo
+        #depth - profundidade
+        #agentIndex - indica qual agente esta jogando( Pacman - agentIndex[0], ghosts  - agentIndex[>=1])
+        def value(state, depth, agentIndex):
+            #verifica se o jogo ja acabou(ganhau ou perdeu) ou se atingiu a profundidade maxima
+            if state.isWin() or state.isLose() or depth == self.depth:
+                #se sim retorna a avaliação do estado atual
+                return self.evaluationFunction(state)
+            if agentIndex == 0: #verifica se é o pacman que esta jogando
+                #se sim maximiza o valor do pacman
+                return maxValue(state, depth)
+            else:#caso não for o pacman
+                #minimiza o valor dos fantasmas
+                return minValue(state, depth, agentIndex)
+
+        #calcula o valor maximo que o pacman pode obter a partir do estado atual
+        def maxValue(state, depth):
+            #inicializa o valor maximo como menos infinito
+            v = float('-inf')
+            #guarda todos as ações legais do Pacman no estado atual
+            actions = state.getLegalActions(0)
+            #verifica se não tem ações possiveis (estado sem saida)
+            if not actions:
+                #se sim retorna a avaliação do estado atual
+                return self.evaluationFunction(state)
+            #para cada ação possivel do Pacman
+            for action in actions:
+                #gera estado sucessor apos a ação
+                successor = state.generateSuccessor(0, action)
+                #calcula o valor maximo considerando o proximo agente
+                v = max(v, value(successor, depth, 1))  # próximo agente = fantasma 1
+            #retorna o maior valor encontrado entre todas as ações
+            return v
+
+        #calcula o valor minimo que o pacman pode obter a partir do estado atual
+        def minValue(state, depth, agentIndex):
+            #inicializa o valor minimo como mais-infinito
+            v = float('inf')
+            #guarda todos as ações legais do Pacman no estado atual
+            actions = state.getLegalActions(agentIndex)
+            #verifica se não tem ações possiveis (estado sem saida)
+            if not actions:
+                #se sim retorna a avaliação do estado atual
+                return self.evaluationFunction(state)
+            #guarda o numero total de agentes (Pacman + Fantasmas)
+            numAgents = state.getNumAgents()
+            #para cada ação possivel do Pacman
+            for action in actions:
+                #gera estado sucessor apos a ação
+                successor = state.generateSuccessor(agentIndex, action)
+                #verifica se é o ultimo fantasma da rodada
+                if agentIndex == numAgents - 1:
+                    #se sim, o proximo agente é o Pacman, a profundidade aumenta e minimiza o valor dos fantasmas
+                    v = min(v, value(successor, depth + 1, 0))
+                else: #se não for o ultimo fantasma
+                    #o proximo agente é o proximo fantasma, a profundidade não muda e minimiza o valor do proximo fantasma
+                    v = min(v, value(successor, depth, agentIndex + 1))
+            #retorna o menor valor encontrado entre todas as ações
+            return v
+
+        bestAction = None #variavel para gurdar a melhor ação
+        bestValue = float('-inf') # melhor valor até o momento
+        actions = gameState.getLegalActions(0) #guarda todos as ações legais do Pacman no estado atual
+
+        #para cada ação possivel do pacman
+        for action in actions:
+            #gera estado sucessor apos a ação
+            successor = gameState.generateSuccessor(0, action)
+            #calcula o minimax desse sucessor, considerando que o proximo agente é o fantasma 1
+            score = value(successor, 0, 1)
+            #verifica se o valor calculado é melhor que o melhor valor até o momento
+            if score > bestValue:
+                #atualiza o melhor valor
+                bestValue = score
+                #atualiza a melhor ação correspondente
+                bestAction = action
+        #retorna a ação que produz o melhor malor
+        return bestAction
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
