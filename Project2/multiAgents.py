@@ -75,6 +75,40 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
+        dist_from_ghost = 0
+
+        for ghostState in newGhostStates:
+            dist_from_ghost = manhattanDistance(newPos,ghostState.getPosition())
+            if(dist_from_ghost <= 1):
+                return -math.inf
+
+        food_available = [] # guarda as comidas que estao disponiveis
+        food_data = [] # guarda as informacoes acerca das comidas
+        food_distance = 0 # distancia da comida mais proxima em relacao ao pacman
+
+        for i in range(0,newFood.width):
+            for j in range(0,newFood.height):
+                if newFood[i][j]:
+                    food_available.append((i,j))
+
+        next_food_count = len(food_available)
+
+        if next_food_count == 0:
+            return -math.inf
+
+        for food_location in food_available:
+            food_distance = manhattanDistance(newPos,food_location)
+            food_data.append(food_distance)
+
+        closest_food_distance = min(food_data) # guarda o valor da distancia da comida mais proxima
+        remaining_food_count = currentGameState.getNumFood() # guarda o valor de comidas que restam
+
+        if next_food_count < remaining_food_count :
+            return 1000 # podemos variar os testes no intervalo de 500 a 1000
+
+        score = (10*(1/closest_food_distance))
+
+        state = GameState
         return successorGameState.getScore()
 
 def scoreEvaluationFunction(currentGameState: GameState):
