@@ -377,7 +377,64 @@ def betterEvaluationFunction(currentGameState: GameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    #posição atual do Pacman
+    pacmanPosition = currentGameState.getPacmanPosition()
+    #grid das comida
+    foodGrid = currentGameState.getFood()
+    #estados dos fantasmas (posição + scaredTimer)
+    ghostStates = currentGameState.getGhostStates()
+    #capsulas restantes
+    capsules = currentGameState.getCapsules()
+    #score base dado pelo proprio ambiente
+    score = currentGameState.getScore()
+
+    #lista com as posições de toda a comida
+    food_list = foodGrid.asList()
+    food_value = 0.0
+
+    #para cada comida na lista
+    for food_pos in food_list:
+        #calcula a distancia do pacman ate a comuda
+        dist = manhattanDistance(pacmanPosition, food_pos)
+        #atribui um valor baseado na distancia (quanto mais perto maior o valor)
+        food_value += 1.0 / (dist + 1)
+
+    
+    capsule_value = 0.0
+    #para cada capsula na lista
+    for cap in capsules:
+        #calcula a distancia do pacman ate a capsula
+        dist = manhattanDistance(pacmanPosition, cap)
+        #atribui um valor baseado na distancia (quanto mais perto maior o valor)
+        capsule_value += 2.0 / (dist + 1)
+
+    dangerPenalty = 0.0
+    scaredBonus = 0.0
+
+    #para cada fantasma no estado atual
+    for ghost in ghostStates:
+        #posição do fantasma
+        ghostPosition = ghost.getPosition()
+        #calcula a distancia do pacman ate o fantasma
+        dist = manhattanDistance(pacmanPosition, ghostPosition)
+
+        #se o fantasma estiver assustado
+        if ghost.scaredTimer > 0:
+            #aproxima-se ao fantasma vale a pena (comer fantasma da +200pts)
+            scaredBonus += 3.0 / (dist + 1)
+        #caso não
+        else:
+            #se a distancia entre pacman e fantasma for menor que 2
+            if dist < 2:
+                #aumenta a penalidade de perigo
+                dangerPenalty += 10.0
+            else:
+                #atribui uma penalidade baseada na distancia (quanto mais perto maior a penalidade)
+                dangerPenalty += 1.0 / (dist + 1)
+
+    finalScore = score + food_value + capsule_value + scaredBonus - dangerPenalty
+    return  finalScore
+    #util.raiseNotDefined()
 
 # Abbreviation
 better = betterEvaluationFunction
