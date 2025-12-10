@@ -367,6 +367,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
 
         outputList = expHelper(gameState, 0, 0)
         return outputList[0]
+        
         util.raiseNotDefined()
 
 def betterEvaluationFunction(currentGameState: GameState):
