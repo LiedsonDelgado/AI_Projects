@@ -154,4 +154,46 @@ class PrioritizedSweepingValueIterationAgent(ValueIterationAgent):
 
     def runValueIteration(self):
         "*** YOUR CODE HERE ***"
+        queue = util.PriorityQueue()
+        states = self.mdp.getStates()
+        predecessors = {}
 
+        for state in states:
+          if not self.mdp.isTerminal(state):
+            for action in self.mdp.getPossibleActions(state):
+                for nextState, prob in self.mdp.getTransitionStatesAndProbs(state, action):
+                    if nextState in predecessors:
+                        predecessors[nextState].add(state)
+                    else:
+                        predecessors[nextState] = {state}
+
+        for state in states:
+            if not self.mdp.isTerminal(state):
+                values = []
+                for action in self.mdp.getPossibleActions(state):
+                    q_value = self.computeQValueFromValues(state, action)
+                    values.append(q_value)
+                diff = abs(max(values) - self.values[state])
+                queue.update(state, - diff)
+
+        for i in range(self.iterations):
+            if queue.isEmpty():
+                break
+          
+            temp_state = queue.pop()
+            if not self.mdp.isTerminal(temp_state):
+                values = []
+                for action in self.mdp.getPossibleActions(temp_state):
+                    q_value = self.computeQValueFromValues(temp_state, action)
+                    values.append(q_value)
+                self.values[temp_state] = max(values)
+
+            for p in predecessors[temp_state]:
+                if not self.mdp.isTerminal(p):
+                    values = []
+                    for action in self.mdp.getPossibleActions(p):
+                        q_value = self.computeQValueFromValues(p, action)
+                        values.append(q_value)
+                    diff = abs(max(values) - self.values[p])
+                    if diff > self.theta:
+                        queue.update(p, -diff)
