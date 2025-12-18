@@ -1,3 +1,4 @@
+
 # crawler.py
 # ----------
 # Licensing Information:  You are free to use or extend these projects for
@@ -126,8 +127,8 @@ class CrawlingRobotEnvironment(environment.Environment):
         ## Also call self.crawlingRobot.setAngles()
         ## to the initial arm and hand angle
 
-        armState = self.nArmStates//2
-        handState = self.nHandStates//2
+        armState = self.nArmStates/2
+        handState = self.nHandStates/2
         self.state = armState,handState
         self.crawlingRobot.setAngles(self.armBuckets[armState],self.handBuckets[handState])
         self.crawlingRobot.positions = [20,self.crawlingRobot.getRobotPosition()[0]]
@@ -163,9 +164,9 @@ class CrawlingRobot:
         """
         oldArmAngle = self.armAngle
         if newArmAngle > self.maxArmAngle:
-            raise Exception('Crawling Robot: Arm Raised too high. Careful!')
+            raise 'Crawling Robot: Arm Raised too high. Careful!'
         if newArmAngle < self.minArmAngle:
-            raise Exception('Crawling Robot: Arm Raised too low. Careful!')
+            raise 'Crawling Robot: Arm Raised too low. Careful!'
         disp = self.displacement(self.armAngle, self.handAngle,
                                   newArmAngle, self.handAngle)
         curXPos = self.robotPos[0]
@@ -186,9 +187,9 @@ class CrawlingRobot:
         oldHandAngle = self.handAngle
 
         if newHandAngle > self.maxHandAngle:
-            raise Exception('Crawling Robot: Hand Raised too high. Careful!')
+            raise 'Crawling Robot: Hand Raised too high. Careful!'
         if newHandAngle < self.minHandAngle:
-            raise Exception('Crawling Robot: Hand Raised too low. Careful!')
+            raise 'Crawling Robot: Hand Raised too low. Careful!'
         disp = self.displacement(self.armAngle, self.handAngle, self.armAngle, newHandAngle)
         curXPos = self.robotPos[0]
         self.robotPos = (curXPos+disp, self.robotPos[1])
@@ -257,7 +258,7 @@ class CrawlingRobot:
                 return 0.0
             return -(x - y * (xOld-x)/(yOld-y)) + math.sqrt(xOld*xOld + yOld*yOld)
 
-        raise Exception('Never Should See This!')
+        raise 'Never Should See This!'
 
     def draw(self, stepCount, stepDelay):
         x1, y1 = self.getRobotPosition()
@@ -265,7 +266,7 @@ class CrawlingRobot:
 
         ## Check Lower Still on the ground
         if y1 != self.groundY:
-            raise Exception('Flying Robot!!')
+            raise 'Flying Robot!!'
 
         rotationAngle = self.getRotationAngle()
         cosRot, sinRot = self.__getCosAndSin(rotationAngle)
