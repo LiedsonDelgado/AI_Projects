@@ -519,9 +519,20 @@ def localization(problem, agent) -> Generator:
     KB = []
 
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-
+    # add all walls
+    for coord in all_coords:
+        if coord in walls_list:
+            KB.append(PropSymbolExpr(wall_str, coord[0], coord[1]))
+        else:
+            KB.append(~PropSymbolExpr(wall_str, coord[0], coord[1]))
     for t in range(agent.num_timesteps):
+        # Add pacphysics, action, and percept information to KB.
+        helperA(KB, agent, t, all_coords, non_outer_wall_coords, walls_grid)
+        possible_locations = []
+        # Find all possible locations
+        helperB(KB, t, possible_locations, non_outer_wall_coords)
+
+        agent.moveToNextState(agent.actions[t])
         "*** END YOUR CODE HERE ***"
         yield possible_locations
 
@@ -551,9 +562,14 @@ def mapping(problem, agent) -> Generator:
     KB.append(conjoin(outer_wall_sent))
 
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-
+    #initial position
+    KB.append(PropSymbolExpr(pacman_str, pac_x_0, pac_y_0, time=0))
+    #if there is a wall, always false because pacman is in that position
+    KB.append(~PropSymbolExpr(wall_str, pac_x_0, pac_y_0, time=0))
     for t in range(agent.num_timesteps):
+        helperA(KB, agent, t, all_coords, non_outer_wall_coords, known_map)
+        helperC(KB, known_map, non_outer_wall_coords)
+        agent.moveToNextState(agent.actions[t])
         "*** END YOUR CODE HERE ***"
         yield known_map
 
