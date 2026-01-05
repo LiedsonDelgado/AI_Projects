@@ -502,6 +502,36 @@ def foodLogicPlan(problem) -> List:
     return []
     #util.raiseNotDefined()
     "*** END YOUR CODE HERE ***"
+def helperA(KB, agent, time, all_coords, non_outer_wall_coords, walls):
+    # Add pacphysics, action, and percept information to KB
+    KB.append(pacphysicsAxioms(time, all_coords, non_outer_wall_coords, walls, sensorAxioms, allLegalSuccessorAxioms))
+    KB.append(PropSymbolExpr(agent.actions[time], time=time))
+    KB.append(fourBitPerceptRules(time, agent.getPercepts()))
+
+def helperB(KB, time, possible_locations, non_outer_wall_coords):
+    # Find possible pacman locations with updated KB
+    for pos in non_outer_wall_coords:
+        pacman = PropSymbolExpr(pacman_str, pos[0], pos[1], time=time)
+
+        if findModel(conjoin(KB) & pacman):
+            possible_locations.append(pos)
+
+        elif entails(conjoin(KB), pacman):
+            KB.append(pacman)
+        else:
+            KB.append(~pacman)
+
+def helperC(KB, known_map, non_outer_wall_coords):
+    # Find provable wall locations with updated KB
+    for coord in non_outer_wall_coords:
+        checkWall = PropSymbolExpr(wall_str, coord[0], coord[1])
+        if entails(conjoin(KB), checkWall):
+            KB.append(checkWall)
+            known_map[coord[0]][coord[1]] = True
+
+        elif entails(conjoin(KB), ~checkWall):
+            KB.append(~checkWall)
+            known_map[coord[0]][coord[1]] = False
 
 #______________________________________________________________________________
 # QUESTION 6
@@ -574,11 +604,33 @@ def mapping(problem, agent) -> Generator:
     KB.append(conjoin(outer_wall_sent))
 
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    KB.append(PropSymbolExpr(pacman_str, pac_x_0, pac_y_0, time=0))
+    KB.append(~PropSymbolExpr(wall_str, pac_x_0, pac_y_0))
+    known_map[pac_x_0][pac_y_0] = 0
+
+    boolGrid = [[False for y in range(problem.getHeight()+2)] for x in range(problem.getWidth()+2)]
+
+    for x, y in all_coords:
+        if ((x == 0 or x == problem.getWidth() + 1)
+                or (y == 0 or y == problem.getHeight() + 1)):
+            boolGrid[x][y] = True
 
     for t in range(agent.num_timesteps):
+        helperA(KB, agent, t, all_coords, non_outer_wall_coords, boolGrid)
+        for coord in non_outer_wall_coords:
+            checkWall = PropSymbolExpr(wall_str, coord[0], coord[1])
+            if entails(conjoin(KB), checkWall):
+                KB.append(checkWall)
+                known_map[coord[0]][coord[1]] = 1  
+                boolGrid[coord[0]][coord[1]] = True
+            elif entails(conjoin(KB), ~checkWall):
+                KB.append(~checkWall)
+                known_map[coord[0]][coord[1]] = 0  
+                boolGrid[coord[0]][coord[1]] = False
+        agent.moveToNextState(agent.actions[t])
         "*** END YOUR CODE HERE ***"
         yield known_map
+
 
 #______________________________________________________________________________
 # QUESTION 8
@@ -606,9 +658,20 @@ def slam(problem, agent) -> Generator:
     KB.append(conjoin(outer_wall_sent))
 
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    #util.raiseNotDefined()
+    KB.append(PropSymbolExpr(pacman_str, pac_x_0, pac_y_0, time=0))
+    known_map[pac_x_0][pac_y_0] = 0
 
     for t in range(agent.num_timesteps):
+        "*** END YOUR CODE HERE ***"
+        KB.append(pacphysicsAxioms(t, all_coords, non_outer_wall_coords, known_map, SLAMSensorAxioms, SLAMSuccessorAxioms))
+        KB.append(PropSymbolExpr(agent.actions[t], time=t))
+        KB.append(numAdjWallsPerceptRules(t, agent.getPercepts()))
+        possible_locations = []
+        helperC(KB, known_map, non_outer_wall_coords)
+        helperB(KB, t, possible_locations, non_outer_wall_coords)
+
+        agent.moveToNextState(agent.actions[t])
         "*** END YOUR CODE HERE ***"
         yield (known_map, possible_locations)
 
