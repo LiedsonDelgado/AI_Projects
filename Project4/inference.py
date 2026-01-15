@@ -338,7 +338,10 @@ class DiscreteDistribution(dict):
         {}
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        #raiseNotDefined()
+        total = self.total()
+        for key in self:
+            self[key] /= total
         "*** END YOUR CODE HERE ***"
 
     def sample(self):
@@ -363,7 +366,14 @@ class DiscreteDistribution(dict):
         0.0
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        #raiseNotDefined()
+        total = self.total()
+        randomValue = random.uniform(0, total)
+        prob = 0.0
+        for key in self:
+            if prob + self[key] > randomValue:
+                return key
+            prob += self[key]
         "*** END YOUR CODE HERE ***"
 
 
@@ -438,6 +448,14 @@ class InferenceModule:
         Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
         """
         "*** YOUR CODE HERE ***"
+        if ghostPosition == jailPosition:
+            return 1 if noisyDistance is None else 0
+        if noisyDistance is None:
+            return 0
+
+        trueDistance = manhattanDistance(pacmanPosition,ghostPosition)
+
+        return busters.getObservationProbability(noisyDistance,trueDistance)
         raiseNotDefined()
         "*** END YOUR CODE HERE ***"
 
@@ -552,7 +570,8 @@ class ExactInference(InferenceModule):
         position is known.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        raiseNotDefined()             
+
         "*** END YOUR CODE HERE ***"
         self.beliefs.normalize()
     
